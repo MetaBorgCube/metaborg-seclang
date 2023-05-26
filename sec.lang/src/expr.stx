@@ -1,0 +1,62 @@
+module expr
+
+imports
+
+  signatures/start-sig
+
+  base
+  env
+
+rules
+
+  typeOfExpr: Env * Expr -> TYPE
+  typeOfBinOp : BinOp * TYPE * TYPE -> TYPE
+
+  // generic rule for binary operations
+  typeOfExpr(ENV, BinExpr(e1, op, e2)) = T :- {T1 T2}
+    typeOfExpr(ENV, e1) == T1,
+    typeOfExpr(ENV, e2) == T2,
+    typeOfBinOp(op, T1, T2) == T.
+
+rules // Boolean Expressions
+
+  typeOfExpr(_, Literal(True()))    = BOOL().
+  typeOfExpr(_, Literal(False()))   = BOOL().
+
+  typeOfExpr(ENV, UnExpr(Neg(), e)) = BOOL() :-
+    typeOfExpr(ENV, e) == BOOL().
+
+
+  typeOfBinOp(And(), BOOL(), BOOL()) = BOOL().
+  typeOfBinOp(Or() , BOOL(), BOOL()) = BOOL().
+  typeOfBinOp(Eq() , BOOL(), BOOL()) = BOOL().
+
+rules  // Numerical Expressions
+
+  typeOfExpr(_, Literal(Number(_))) = INT().
+
+  typeOfExpr(ENV, UnExpr(Min(), e)) = INT() :-
+    typeOfExpr(ENV, e) == INT().
+
+
+  // Arithmetic Operations
+  typeOfBinOp(Plus()  , INT(), INT()) = INT().
+  typeOfBinOp(Minus() , INT(), INT()) = INT().
+  typeOfBinOp(Divide(), INT(), INT()) = INT().
+  typeOfBinOp(Times() , INT(), INT()) = INT().
+
+
+  // Comparison Operations
+  typeOfBinOp(Eq(), INT(), INT()) = BOOL().
+  typeOfBinOp(Lt(), INT(), INT()) = BOOL().
+  typeOfBinOp(Gt(), INT(), INT()) = BOOL().
+
+rules // Identifiers
+
+  typeOfExpr(ENV, Ident(x)) = T :-
+    get(ENV, x) == T.
+
+rules // Array length
+
+  typeOfExpr(ENV, Arlen(x)) = INT() :-
+    get(ENV, x) == ARRAY(_).

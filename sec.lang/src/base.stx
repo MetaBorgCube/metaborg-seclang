@@ -1,0 +1,25 @@
+module base
+
+imports
+
+  signatures/start-sig
+
+signature
+
+  sorts TYPE constructors
+    BOOL  :         TYPE
+    INT   :         TYPE
+    ARRAY : TYPE -> TYPE
+
+  sorts FUNTYPE constructors
+    FUNTYPE : list(TYPE) -> TYPE
+
+  sorts
+    VAR_LIST = list((path * (Identifier * TYPE)))
+
+  name-resolution
+    labels P
+
+  relations
+    fun : FunName -> FUNTYPE
+    var : Identifier -> TYPE

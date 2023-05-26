@@ -1,0 +1,6 @@
+shared.defaultArtifactId=seclang
+shared.defaultClassPrefix=SecLang
+shared.defaultGroupId=org.metaborg
+shared.defaultPackageId=mb.seclang
+shared.defaultVersion=0.1.0
+stratego.source.files.languageStrategyAffix=seclang

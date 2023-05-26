@@ -1,0 +1,112 @@
+module start
+
+context-free start-symbols
+
+  Start
+
+context-free sorts
+
+  Start 
+
+  Funs Fun FunName FunArgs
+  
+  Stmts Stmt
+
+  Expr Args 
+  
+  Literal Identifier
+
+  BinOp UnOp
+
+context-free syntax
+
+  Start.Program = <
+    <Funs>
+    <Stmts>
+  >
+
+  // Functions
+  Funs.Funs = <<{Fun ";\n"}*>>
+  
+  Fun.Fun = <fun <FunName>(<FunArgs>) {
+    <Stmts>
+  }>
+  FunArgs.FunArgs     = <<{ID ","}*>>
+  FunName             = ID
+
+  // Statements
+  Stmts.Stmts         = <<{Stmt ";\n"}*>>
+  
+  Stmt.AssignExpr     = <<Identifier> := <Expr>>
+  Stmt.NewArray       = <<Identifier> := arnew <Expr>>
+  Stmt.ReadArray      = <<Identifier> := arread <ID> <Expr>>
+  Stmt.WriteArray     = <arwrite <Identifier> <Expr> <Expr>>
+  Stmt.AssingFunCall  = <<Identifier> := <FunName>(<Args>)>
+  Stmt.Return         = <return <Expr>>
+  Stmt.IfThenElse     = <if <Expr> {
+    <Stmts>
+  } else {
+    <Stmts>
+  }>
+  Stmt.While          = <while <Expr> {
+    <Stmts>
+  }>
+
+  Args.Args = <<{Expr ","}*>>
+
+  // Expressions
+  Expr                = <(<Expr>)> {bracket}
+  
+  Expr.Ident          = Identifier
+  Expr.Literal        = Literal
+  Expr.BinExpr        = <<Expr> <BinOp> <Expr>> {left}
+  Expr.UnExpr         = <<UnOp> <Expr>>
+  Expr.Arlen		  = <arlen <Identifier>>
+
+  // Operators
+  BinOp.Plus          = <+>
+  BinOp.Minus         = <->
+  BinOp.Divide        = </>
+  BinOp.Times         = <*>
+  BinOp.And           = <&&>
+  BinOp.Or            = <||>
+  BinOp.Eq            = <==>
+  BinOp.Lt            = <\<>
+  BinOp.Gt            = <\>>
+
+  UnOp.Min            = <->
+  UnOp.Neg            = <!>
+
+  // Literals & Identifiers
+  Literal.Number      = INT
+  Literal.True        = <true>
+  Literal.False       = <false>
+
+  Identifier.Id       = ID
+
+context-free priorities
+
+  Expr.UnExpr  >
+  Expr.BinExpr
+
+lexical sorts
+
+  ID INT
+
+lexical syntax
+
+  ID  = [a-zA-Z] [a-zA-Z0-9\_]*
+  INT = [1-9] [0-9]*
+
+  LAYOUT = [\ \n\t\v\f\r]
+
+context-free restrictions
+
+  ID -/- [a-zA-Z0-9\_]
+
+  LAYOUT? -/- [\ \n\t\v\f\r]
+
+template options
+
+  ID = keyword {reject}
+  
