@@ -1,0 +1,94 @@
+module stmt
+
+imports
+
+  base
+  env
+  expr
+
+signature
+
+  relations
+    return: TYPE
+
+rules
+
+  stmtListOk: Env * list(Stmt) -> Env
+  stmtsOk: Env * Stmts -> Env
+
+  stmtsOk(ENV, Stmts(stmts)) = ENV' :-
+    stmtListOk(ENV, stmts) == ENV'.
+
+  stmtListOk(ENV, []) = ENV.
+
+  stmtListOk(ENV, [s | ss]) = ENV'' :- {ENV'}
+    stmtOk(ENV, s) == ENV',
+    stmtListOk(ENV', ss) == ENV''.
+
+rules
+
+  stmtOk: Env * Stmt -> Env
+
+  stmtOk(ENV, AssignExpr(x, e)) = ENV' :- {T}
+    typeOfExpr(ENV, e) == T,
+    update(ENV, x, T) == ENV'.
+
+  // Control Flow
+  stmtOk(ENV, While(e, ss)) = ENV :-
+    typeOfExpr(ENV, e) == BOOL(),
+    stmtsOk(ENV, ss) == _.
+
+  stmtOk(ENV, IfThenElse(e, ss1, ss2)) = ENV :-
+    typeOfExpr(ENV, e) == BOOL(),
+    stmtsOk(ENV, ss1) == _,
+    stmtsOk(ENV, ss2) == _.
+
+  // Arrays
+  stmtOk(ENV, NewArray(x, e)) = ENV' :-
+    typeOfExpr(ENV, e) == INT(),
+    update(ENV, x, ARRAY(_)) == ENV'. // Note: Array Element Type Inferred Later!
+
+  stmtOk(ENV, ReadArray(x, x', e)) = ENV' :- {T}
+    get(ENV, x') == ARRAY(T),
+    typeOfExpr(ENV, e) == INT(),
+    update(ENV, x, T) == ENV'.
+
+  stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV' :- {T}
+    get(ENV, x) == ARRAY(T),
+    typeOfExpr(ENV, e_idx) == INT(),
+    typeOfExpr(ENV, e_val) == T.
+
+  // Return
+  stmtOk(ENV, Return(e)) = ENV :- {T}
+    returnType(ENV) == T,
+    typeOfExpr(ENV, e) == T.
+
+  stmtOk(ENV, AssingFunCall(x, f, Args(args))) = ENV' :- {T_args T_ret}
+    getFunc(ENV, f) == FUNTYPE(T_args, T_ret),
+    argsOk(ENV, args, T_args),
+    update(ENV, x, T_ret) == ENV'.
+
+rules
+
+  returnType: Env -> TYPE
+  returnType(ENV) = T :-
+    query return
+      filter P*
+      in ENV |-> [(_, T)].
+
+rules
+
+  getFunc: Env * FunName -> FUNTYPE
+  argOk: Env * Expr * TYPE
+  argsOk maps argOk(*, list(*), list(*))
+  
+  getFunc(ENV, x) = TF :- {x'}
+    query fun
+      filter P*
+        and { x' :- x' == x }
+      in ENV |-> [(_, (x', TF))],
+    @x.ref := x',
+    @x.type := TF.
+
+  argOk(ENV, e, T) :-
+    typeOfExpr(ENV, e) == T.

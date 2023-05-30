@@ -8,11 +8,11 @@ context-free sorts
 
   Start 
 
-  Funs Fun FunName FunArgs
+  Funs Fun FunName FunArgs FunArg
   
   Stmts Stmt
 
-  Expr Args 
+  Expr Args Arg
   
   Literal Identifier
 
@@ -28,10 +28,11 @@ context-free syntax
   // Functions
   Funs.Funs = <<{Fun ";\n"}*>>
   
-  Fun.Fun = <fun <FunName>(<FunArgs>) {
+  Fun.Fun = <fun <Type> <FunName>(<FunArgs>) {
     <Stmts>
   }>
-  FunArgs.FunArgs     = <<{ID ","}*>>
+  FunArgs.FunArgs     = <<{FunArg ","}*>>
+  FunArg.Arg          = <<Type> <Identifier>>
   FunName             = ID
 
   // Statements
@@ -39,7 +40,7 @@ context-free syntax
   
   Stmt.AssignExpr     = <<Identifier> := <Expr>>
   Stmt.NewArray       = <<Identifier> := arnew <Expr>>
-  Stmt.ReadArray      = <<Identifier> := arread <ID> <Expr>>
+  Stmt.ReadArray      = <<Identifier> := arread <Identifier> <Expr>>
   Stmt.WriteArray     = <arwrite <Identifier> <Expr> <Expr>>
   Stmt.AssingFunCall  = <<Identifier> := <FunName>(<Args>)>
   Stmt.Return         = <return <Expr>>
@@ -88,6 +89,16 @@ context-free priorities
 
   Expr.UnExpr  >
   Expr.BinExpr
+
+context-free sorts
+
+  Type
+
+context-free syntax
+
+  Type.IntT   = <int>
+  Type.BoolT  = <bool>
+  Type.ArrayT = <<Type>[]>
 
 lexical sorts
 

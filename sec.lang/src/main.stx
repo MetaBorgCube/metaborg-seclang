@@ -7,8 +7,13 @@ imports
   base
   env
   expr
+  stmt
+  func
 
 rules
 
   programOk : Start
-  programOk(_).
+  programOk(Program(Funs(funs), ss)) :- {ENV}
+    new ENV,
+    funDeclsOk(ENV, funs),
+    stmtsOk(ENV, ss) == _.

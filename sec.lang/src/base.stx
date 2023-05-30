@@ -12,7 +12,7 @@ signature
     ARRAY : TYPE -> TYPE
 
   sorts FUNTYPE constructors
-    FUNTYPE : list(TYPE) -> TYPE
+    FUNTYPE : list(TYPE) * TYPE -> FUNTYPE
 
   sorts
     VAR_LIST = list((path * (Identifier * TYPE)))

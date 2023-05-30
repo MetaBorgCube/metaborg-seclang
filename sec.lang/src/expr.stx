@@ -60,3 +60,4 @@ rules // Array length
 
   typeOfExpr(ENV, Arlen(x)) = INT() :-
     get(ENV, x) == ARRAY(_).
+   

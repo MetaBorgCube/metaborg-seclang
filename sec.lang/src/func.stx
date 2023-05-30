@@ -1,0 +1,34 @@
+module func
+
+imports
+
+  base
+  env
+  types
+  stmt
+
+rules
+
+  funDeclOk: Env * Fun
+  funDeclsOk maps funDeclOk(*, list(*))
+  
+  funDeclOk(ENV, Fun(T, x, args, ss)) :- {T_fun ENV'}
+    funTypeOk(ENV, x, T, args) == ENV',
+    stmtsOk(ENV', ss) == _.
+    
+rules
+
+  funTypeOk: Env * FunName * Type * FunArgs -> Env
+  funArgOk: Env * FunArg -> TYPE
+  funArgsOk maps funArgOk(*, list(*)) = list(*)
+  
+  funTypeOk(ENV, x, T, FunArgs(args)) = ENV' :- {T_ret T_args}
+    new ENV', ENV' -P-> ENV,
+    typeOfType(T) == T_ret,
+    !fun[x, FUNTYPE(T_args, T_ret)] in ENV,
+    !return[T_ret] in ENV',
+    funArgsOk(ENV', args) == T_args.
+
+  funArgOk(ENV, Arg(t, x)) = T :-
+    typeOfType(t) == T,
+    !var[x, T] in ENV.

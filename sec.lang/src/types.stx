@@ -1,0 +1,14 @@
+module types
+
+imports
+
+  base
+  signatures/start-sig
+
+rules
+
+  typeOfType: Type -> TYPE
+
+  typeOfType(IntT())    = INT().
+  typeOfType(BoolT())   = BOOL().
+  typeOfType(ArrayT(T)) = ARRAY(typeOfType(T)).
