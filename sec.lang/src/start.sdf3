@@ -8,7 +8,9 @@ context-free sorts
 
   Start 
 
-  Funs Fun FunName FunArgs FunArg
+  Funs Fun FunName 
+  
+  FunArgs FunArg
   
   Stmts Stmt
 
@@ -28,21 +30,21 @@ context-free syntax
   // Functions
   Funs.Funs = <<{Fun ";\n"}*>>
   
-  Fun.Fun = <fun <Type> <FunName>(<FunArgs>) {
+  Fun.Fun = <fun <LType> <FunName>(<FunArgs>) {
     <Stmts>
   }>
   FunArgs.FunArgs     = <<{FunArg ","}*>>
-  FunArg.Arg          = <<Type> <Identifier>>
+  FunArg.Arg          = <<LType> <Identifier>>
   FunName             = ID
 
   // Statements
   Stmts.Stmts         = <<{Stmt ";\n"}*>>
   
-  Stmt.AssignExpr     = <<Identifier> := <Expr>>
-  Stmt.NewArray       = <<Identifier> := arnew <Expr>>
-  Stmt.ReadArray      = <<Identifier> := arread <Identifier> <Expr>>
+  Stmt.AssignExpr     = <<Sec> <Identifier> := <Expr>>
+  Stmt.NewArray       = <<Sec> <Identifier> := arnew <Expr>>
+  Stmt.ReadArray      = <<Sec> <Identifier> := arread <Identifier> <Expr>>
   Stmt.WriteArray     = <arwrite <Identifier> <Expr> <Expr>>
-  Stmt.AssingFunCall  = <<Identifier> := <FunName>(<Args>)>
+  Stmt.AssingFunCall  = <<Sec> <Identifier> := <FunName>(<Args>)>
   Stmt.Return         = <return <Expr>>
   Stmt.IfThenElse     = <if <Expr> {
     <Stmts>
@@ -92,13 +94,18 @@ context-free priorities
 
 context-free sorts
 
-  Type
+  Type Sec LType
 
 context-free syntax
 
   Type.IntT   = <int>
   Type.BoolT  = <bool>
   Type.ArrayT = <<Type>[]>
+  
+  Sec.High = <high>
+  Sec.Low  = <>
+
+  LType.LType = <<Sec> <Type>>
 
 lexical sorts
 

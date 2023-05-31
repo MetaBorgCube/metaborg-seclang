@@ -4,7 +4,6 @@ imports
 
   base
   env
-  types
   stmt
 
 rules
@@ -18,17 +17,16 @@ rules
     
 rules
 
-  funTypeOk: Env * FunName * Type * FunArgs -> Env
-  funArgOk: Env * FunArg -> TYPE
+  funTypeOk: Env * FunName * LType * FunArgs -> Env
+  funArgOk: Env * FunArg -> LTYPE
   funArgsOk maps funArgOk(*, list(*)) = list(*)
   
-  funTypeOk(ENV, x, T, FunArgs(args)) = ENV' :- {T_ret T_args}
+  funTypeOk(ENV, x, lt_ret, FunArgs(args)) = ENV' :- {LT_args LT_ret}
     new ENV', ENV' -P-> ENV,
-    typeOfType(T) == T_ret,
-    !fun[x, FUNTYPE(T_args, T_ret)] in ENV,
-    !return[T_ret] in ENV',
-    funArgsOk(ENV', args) == T_args.
+    ltypeOfLType(lt_ret) == LT_ret,
+    !fun[x, FUNTYPE(LT_args, LT_ret)] in ENV,
+    !return[LT_ret] in ENV',
+    funArgsOk(ENV', args) == LT_args.
 
-  funArgOk(ENV, Arg(t, x)) = T :-
-    typeOfType(t) == T,
-    !var[x, T] in ENV.
+  funArgOk(ENV, Arg(lt, x)) = LT :-
+    !var[x, LT@ltypeOfLType(lt)] in ENV.

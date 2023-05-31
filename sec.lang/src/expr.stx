@@ -6,25 +6,27 @@ imports
 
   base
   env
+  sec
 
 rules
 
-  typeOfExpr: Env * Expr -> TYPE
+  typeOfExpr: Env * Expr -> LTYPE
   typeOfBinOp : BinOp * TYPE * TYPE -> TYPE
 
   // generic rule for binary operations
-  typeOfExpr(ENV, BinExpr(e1, op, e2)) = T :- {T1 T2}
-    typeOfExpr(ENV, e1) == T1,
-    typeOfExpr(ENV, e2) == T2,
-    typeOfBinOp(op, T1, T2) == T.
+  typeOfExpr(ENV, BinExpr(e1, op, e2)) = (T, S) :- {S1 S2 T1 T2}
+    typeOfExpr(ENV, e1) == (T1, S1),
+    typeOfExpr(ENV, e2) == (T2, S2),
+    typeOfBinOp(op, T1, T2) == T,
+    or(S1, S2) == S.
 
 rules // Boolean Expressions
 
-  typeOfExpr(_, Literal(True()))    = BOOL().
-  typeOfExpr(_, Literal(False()))   = BOOL().
+  typeOfExpr(_, Literal(True()))    = (BOOL(), LOW()).
+  typeOfExpr(_, Literal(False()))   = (BOOL(), LOW()).
 
-  typeOfExpr(ENV, UnExpr(Neg(), e)) = BOOL() :-
-    typeOfExpr(ENV, e) == BOOL().
+  typeOfExpr(ENV, UnExpr(Neg(), e)) = LT :-
+    typeOfExpr(ENV, e) == LT@(BOOL(), _).
 
 
   typeOfBinOp(And(), BOOL(), BOOL()) = BOOL().
@@ -33,10 +35,10 @@ rules // Boolean Expressions
 
 rules  // Numerical Expressions
 
-  typeOfExpr(_, Literal(Number(_))) = INT().
+  typeOfExpr(_, Literal(Number(_))) = (INT(), LOW()).
 
-  typeOfExpr(ENV, UnExpr(Min(), e)) = INT() :-
-    typeOfExpr(ENV, e) == INT().
+  typeOfExpr(ENV, UnExpr(Min(), e)) = (INT(), S) :-
+    typeOfExpr(ENV, e) == (INT(), S).
 
 
   // Arithmetic Operations
@@ -54,10 +56,11 @@ rules  // Numerical Expressions
 rules // Identifiers
 
   typeOfExpr(ENV, Ident(x)) = T :-
-    get(ENV, x) == T.
+    get(ENV, x) == T
+    | error $[Cannot find variable [x] (or it has incompatible security label).].
 
 rules // Array length
 
-  typeOfExpr(ENV, Arlen(x)) = INT() :-
-    get(ENV, x) == ARRAY(_).
+  typeOfExpr(ENV, Arlen(x)) = (INT(), S) :-
+    get(ENV, x) == (ARRAY(_), S).
    

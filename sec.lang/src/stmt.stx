@@ -5,11 +5,12 @@ imports
   base
   env
   expr
+  sec
 
 signature
 
   relations
-    return: TYPE
+    return: LTYPE
 
 rules
 
@@ -29,48 +30,68 @@ rules
 
   stmtOk: Env * Stmt -> Env
 
-  stmtOk(ENV, AssignExpr(x, e)) = ENV' :- {T}
+  stmtOk(ENV, AssignExpr(s, x, e)) = ENV' :- {T T'}
     typeOfExpr(ENV, e) == T,
-    update(ENV, x, T) == ENV'.
+    secCompat(s, T) == T',
+    update(ENV, x, T') == ENV'.
 
   // Control Flow
-  stmtOk(ENV, While(e, ss)) = ENV :-
-    typeOfExpr(ENV, e) == BOOL(),
-    stmtsOk(ENV, ss) == _.
+  stmtOk(ENV, While(e, ss)) = ENV :- {S ENV'}
+    typeOfExpr(ENV, e) == (BOOL(), S),
+    updateFlowSensitivity(ENV, S) == ENV',
+    stmtsOk(ENV', ss) == _.
 
-  stmtOk(ENV, IfThenElse(e, ss1, ss2)) = ENV :-
-    typeOfExpr(ENV, e) == BOOL(),
-    stmtsOk(ENV, ss1) == _,
-    stmtsOk(ENV, ss2) == _.
+  stmtOk(ENV, IfThenElse(e, ss1, ss2)) = ENV :- {S ENV'}
+    typeOfExpr(ENV, e) == (BOOL(), S),
+    updateFlowSensitivity(ENV, S) == ENV',
+    stmtsOk(ENV', ss1) == _,
+    stmtsOk(ENV', ss2) == _.
 
   // Arrays
-  stmtOk(ENV, NewArray(x, e)) = ENV' :-
-    typeOfExpr(ENV, e) == INT(),
-    update(ENV, x, ARRAY(_)) == ENV'. // Note: Array Element Type Inferred Later!
+  stmtOk(ENV, NewArray(s, x, e)) = ENV' :- {T T' S}
+    typeOfExpr(ENV, e) == T,
+    secCompat(s, T) == (INT(), S),
+    update(ENV, x, (ARRAY(_), S)) == ENV'. // Note: Array Element Type Inferred Later!
 
-  stmtOk(ENV, ReadArray(x, x', e)) = ENV' :- {T}
-    get(ENV, x') == ARRAY(T),
-    typeOfExpr(ENV, e) == INT(),
-    update(ENV, x, T) == ENV'.
+  stmtOk(ENV, ReadArray(s, x, x', e)) = ENV' :- {T T' S_x S_e S}
+    get(ENV, x') == (ARRAY(T), S_x),
+    typeOfExpr(ENV, e) == (INT(), S_e),
+    or(S_x, S_e) == S,
+    secCompat(s, (T, S)) == T',
+    update(ENV, x, T') == ENV'.
 
-  stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV' :- {T}
-    get(ENV, x) == ARRAY(T),
-    typeOfExpr(ENV, e_idx) == INT(),
-    typeOfExpr(ENV, e_val) == T.
+  stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV' :- {T S_x S_e S}
+    get(ENV, x) == (ARRAY(T), S_x),
+    typeOfExpr(ENV, e_idx) == (INT(), S_e),
+    or(S_x, S_e) == S,
+    typeOfExpr(ENV, e_val) == (T, S).
 
   // Return
-  stmtOk(ENV, Return(e)) = ENV :- {T}
-    returnType(ENV) == T,
-    typeOfExpr(ENV, e) == T.
+  stmtOk(ENV, Return(e)) = ENV :- {T S S'}
+    returnType(ENV) == (T, S)
+    | error $[Return value has incompatible type or security label.],
+    typeOfExpr(ENV, e) == (T, S'),
+    assignCompat(S, S').
 
-  stmtOk(ENV, AssingFunCall(x, f, Args(args))) = ENV' :- {T_args T_ret}
+  stmtOk(ENV, AssingFunCall(s, x, f, Args(args))) = ENV' :- {T_args T_ret T_ret'}
     getFunc(ENV, f) == FUNTYPE(T_args, T_ret),
     argsOk(ENV, args, T_args),
-    update(ENV, x, T_ret) == ENV'.
+    secCompat(s, T_ret) == T_ret',
+    update(ENV, x, T_ret') == ENV'.
 
 rules
 
-  returnType: Env -> TYPE
+  secCompat: Sec * LTYPE -> LTYPE
+
+  secCompat(s@Low(), T) = T.
+
+  secCompat(s@High(), (T, S')) = (T, S) :-
+    secOfSec(s) == S,
+    assignCompat(S, S').
+
+rules
+
+  returnType: Env -> LTYPE
   returnType(ENV) = T :-
     query return
       filter P*
@@ -79,7 +100,7 @@ rules
 rules
 
   getFunc: Env * FunName -> FUNTYPE
-  argOk: Env * Expr * TYPE
+  argOk: Env * Expr * LTYPE
   argsOk maps argOk(*, list(*), list(*))
   
   getFunc(ENV, x) = TF :- {x'}
@@ -92,3 +113,12 @@ rules
 
   argOk(ENV, e, T) :-
     typeOfExpr(ENV, e) == T.
+
+rules
+
+  updateFlowSensitivity: Env * SEC -> Env
+  updateFlowSensitivity(ENV, LOW()) = ENV.
+  updateFlowSensitivity(ENV, HIGH()) = ENV' :-
+    new ENV',
+    ENV' -P-> ENV,
+    !flowSensitive[] in ENV'.

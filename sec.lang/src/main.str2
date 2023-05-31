@@ -11,9 +11,17 @@ imports
 
 rules // Analysis
 
-  pre-analyze  = explicate-injections-seclang-Start
+  pre-analyze  = explicate-injections-seclang-Start; erase-all-sec-annos
   post-analyze = implicate-injections-seclang-Start
 
   editor-analyze = stx-editor-analyze(pre-analyze, post-analyze|"main", "programOk")
   editor-resolve = stx-editor-resolve
   editor-hover   = stx-editor-hover
+
+rules
+
+  erase-all-sec-annos :: TP
+  erase-all-sec-annos = topdown(try(erase-sec-annos))
+  
+  erase-sec-annos :: TP
+  erase-sec-annos = (?Low() + ?High()); strip-annos

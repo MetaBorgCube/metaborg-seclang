@@ -1,0 +1,55 @@
+module sec
+
+imports
+
+  signatures/start-sig
+  base
+  env
+
+signature
+
+  sorts SEC constructors
+    LOW  : SEC
+    HIGH : SEC
+
+rules
+
+  assignCompat:   /* Variable */ SEC * /* Expression */ SEC
+  assignCompatLR: /* Variable */ SEC * /* Expression */ SEC
+  assignCompatRL: /* Variable */ SEC * /* Expression */ SEC
+
+  assignCompat(S_l, S_r) :-
+    assignCompatLR(S_l, S_r),
+    assignCompatRL(S_l, S_r).
+
+  assignCompatLR(HIGH(), _).
+  assignCompatLR(LOW(), S) :- S == LOW().
+
+  assignCompatRL(S, HIGH()) :- S == HIGH().
+  assignCompatRL(_, LOW()).
+  
+  // assignCompat(Low(), High()).
+
+  or: SEC * SEC -> SEC
+  or(LOW(), LOW()) =  LOW().
+  or(_, _) = HIGH().
+
+
+signature
+
+  relations
+    flowSensitive:
+
+rules
+
+  flowSensitivity: Env -> Sec
+
+  flowSensitivity(ENV) = flowSensitivity2Sec(R) :-
+    query flowSensitive
+      filter P*
+      in ENV |-> R.
+
+  flowSensitivity2Sec : list((path * ())) -> Sec
+  
+  flowSensitivity2Sec([]) = Low().
+  flowSensitivity2Sec(_)  = High().
