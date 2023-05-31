@@ -53,7 +53,7 @@ rules
     typeOfExpr(ENV, e) == INT(),
     update(ENV, x, T) == ENV'.
 
-  stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV' :- {T}
+  stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV :- {T}
     get(ENV, x) == ARRAY(T),
     typeOfExpr(ENV, e_idx) == INT(),
     typeOfExpr(ENV, e_val) == T.
