@@ -40,7 +40,7 @@ context-free syntax
   
   Stmt.AssignExpr     = <<Identifier> := <Expr>>
   Stmt.NewArray       = <<Identifier> := arnew <Expr>>
-  Stmt.ReadArray      = <<Identifier> := arread <Identifier> <Expr>>
+  // FIXME : Add Production for ReadArray Construct
   Stmt.WriteArray     = <arwrite <Identifier> <Expr> <Expr>>
   Stmt.AssingFunCall  = <<Identifier> := <FunName>(<Args>)>
   Stmt.Return         = <return <Expr>>
@@ -61,8 +61,8 @@ context-free syntax
   Expr.Ident          = Identifier
   Expr.Literal        = Literal
   Expr.BinExpr        = <<Expr> <BinOp> <Expr>> {left}
-  Expr.UnExpr         = <<UnOp> <Expr>>
-  Expr.Arlen		  = <arlen <Identifier>>
+  Expr.UnExpr		  = <<UnOp> <Expr>>
+  // FIXME: Add Production for Array Length Expressions
 
   // Operators
   BinOp.Plus          = <+>
@@ -80,7 +80,7 @@ context-free syntax
 
   // Literals & Identifiers
   Literal.Number      = INT
-  Literal.True        = <true>
+  // FIXME: Add Production for `true` Literal
   Literal.False       = <false>
 
   Identifier.Id       = ID

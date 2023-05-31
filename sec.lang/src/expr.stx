@@ -9,15 +9,15 @@ imports
 
 rules
 
-  typeOfExpr: Env * Expr -> TYPE
+  typeOfExpr: Env * Expr -> TYPE                  // Γ ⊢ 𝑒 ∶ 𝑇    (judgment form, start 5.2)
 
 rules // Boolean Expressions
 
-  typeOfExpr(_, Literal(True()))    = BOOL().
-  typeOfExpr(_, Literal(False()))   = BOOL().
+  // FIXME: Add rule for `True()`.
+  typeOfExpr(_, Literal(False()))   = BOOL().     // Γ ⊢ false ∶ Bool
 
-  typeOfExpr(ENV, UnExpr(Neg(), e)) = BOOL() :-
-    typeOfExpr(ENV, e) == BOOL().
+  typeOfExpr(ENV, UnExpr(Neg(), e)) = BOOL() :-   // Γ ⊢ !𝑒 ∶Bool
+    typeOfExpr(ENV, e) == BOOL().                 // Γ ⊢ 𝑒 ∶ Bool  (premise)
 
   // Binary operations defined below
 
@@ -32,13 +32,15 @@ rules  // Numerical Expressions
 
 rules // Identifiers
 
-  typeOfExpr(ENV, Ident(x)) = T :-
-    get(ENV, x) == T.
+  typeOfExpr(ENV, Ident(x)) = T :-               // Γ ⊢ 𝑥 ∶ 𝑇
+    get(ENV, x) == T.                            // get(Γ, 𝑥) = 𝑇
 
 rules // Array length
 
-  typeOfExpr(ENV, Arlen(x)) = INT() :-
-    get(ENV, x) == ARRAY(_).
+  // FIXME: Add Typing Rule for Array length:
+  //    get(Γ, 𝑥) = 𝑇[]
+  // ---------------------
+  //   Γ ⊢ arlen 𝑥 ∶ Int
 
 rules // Binary Operations
 
@@ -67,3 +69,4 @@ rules // Binary Operations
   typeOfBinOp(Eq(), INT(), INT()) = BOOL().
   typeOfBinOp(Lt(), INT(), INT()) = BOOL().
   typeOfBinOp(Gt(), INT(), INT()) = BOOL().
+
