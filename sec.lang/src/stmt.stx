@@ -32,7 +32,7 @@ rules
 
   stmtOk(ENV, AssignExpr(s, x, e)) = ENV' :- {T T'}
     typeOfExpr(ENV, e) == T,
-    secCompat(s, T) == T',
+    secCompat(ENV, s, T) == T',
     update(ENV, x, T') == ENV'.
 
   // Control Flow
@@ -50,14 +50,14 @@ rules
   // Arrays
   stmtOk(ENV, NewArray(s, x, e)) = ENV' :- {T T' S}
     typeOfExpr(ENV, e) == T,
-    secCompat(s, T) == (INT(), S),
+    secCompat(ENV, s, T) == (INT(), S),
     update(ENV, x, (ARRAY(_), S)) == ENV'. // Note: Array Element Type Inferred Later!
 
   stmtOk(ENV, ReadArray(s, x, x', e)) = ENV' :- {T T' S_x S_e S}
     get(ENV, x') == (ARRAY(T), S_x),
     typeOfExpr(ENV, e) == (INT(), S_e),
     or(S_x, S_e) == S,
-    secCompat(s, (T, S)) == T',
+    secCompat(ENV, s, (T, S)) == T',
     update(ENV, x, T') == ENV'.
 
   stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV' :- {T S_x S_e S}
@@ -76,18 +76,17 @@ rules
   stmtOk(ENV, AssingFunCall(s, x, f, Args(args))) = ENV' :- {T_args T_ret T_ret'}
     getFunc(ENV, f) == FUNTYPE(T_args, T_ret),
     argsOk(ENV, args, T_args),
-    secCompat(s, T_ret) == T_ret',
+    secCompat(ENV, s, T_ret) == T_ret',
     update(ENV, x, T_ret') == ENV'.
 
 rules
 
-  secCompat: Sec * LTYPE -> LTYPE
+  secCompat: Env * Sec * LTYPE -> LTYPE
 
-  secCompat(s@Low(), T) = T.
-
-  secCompat(s@High(), (T, S')) = (T, S) :-
-    secOfSec(s) == S,
-    assignCompat(S, S').
+  secCompat(ENV, s, (T, S)) = (T, S') :-
+    S' == or(secOfSec(s),
+             or(flowSensitivity(ENV), S)
+          ).
 
 rules
 

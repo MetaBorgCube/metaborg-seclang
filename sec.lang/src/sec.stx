@@ -42,14 +42,14 @@ signature
 
 rules
 
-  flowSensitivity: Env -> Sec
+  flowSensitivity: Env -> SEC
 
   flowSensitivity(ENV) = flowSensitivity2Sec(R) :-
     query flowSensitive
       filter P*
       in ENV |-> R.
 
-  flowSensitivity2Sec : list((path * ())) -> Sec
+  flowSensitivity2Sec : list((path * ())) -> SEC
   
-  flowSensitivity2Sec([]) = Low().
-  flowSensitivity2Sec(_)  = High().
+  flowSensitivity2Sec([]) = LOW().
+  flowSensitivity2Sec(_)  = HIGH().
