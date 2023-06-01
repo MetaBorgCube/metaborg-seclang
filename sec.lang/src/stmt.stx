@@ -49,8 +49,8 @@ rules
     update(ENV, x, ARRAY(_)) == ENV'. // Note: Array Element Type Inferred Later!
 
   // FIXME: Add rule for `arread` statement
-  //   get(Γ, 𝑥′) T[]     Γ ⊢ 𝑒 ∶ Int     update(Γ, 𝑥, ???[]) ⇝ Γ′
-  // --------------------------------------------------------------
+  //   get(Γ, 𝑥′) = T[]     Γ ⊢ 𝑒 ∶ Int     update(Γ, 𝑥, T) ⇝ Γ′
+  // ----------------------------------------------------------------
   //                Γ ⊢ 𝑥 := arread 𝑥′ 𝑒 ⇝ Γ′
 
   stmtOk(ENV, WriteArray(x, e_idx, e_val)) = ENV :- {T}
